@@ -19,7 +19,8 @@
         restrict: 'A',
         require: '^ngModel',
         scope: {
-          ngModel: '='
+          ngModel: '=',
+          onCountrySelect: '&'
         },
         link: function(scope, element, attrs, ctrl) {
           var handleWhatsSupposedToBeAnArray, options, read, watchOnce;
@@ -58,6 +59,9 @@
               return options[key] = option;
             }
           });
+          if (scope.onCountrySelect) {
+            options['onCountrySelected'] = scope.onCountrySelect;
+          }
           watchOnce = scope.$watch('ngModel', function(newValue) {
             return scope.$$postDigest(function() {
               if (newValue !== null && newValue !== void 0 && newValue.length > 0) {

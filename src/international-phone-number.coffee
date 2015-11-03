@@ -25,6 +25,7 @@ angular.module("internationalPhoneNumber", [])
   require: '^ngModel'
   scope:
     ngModel: '='
+    onCountrySelect: '&'
 
   link: (scope, element, attrs, ctrl) ->
 
@@ -58,6 +59,9 @@ angular.module("internationalPhoneNumber", [])
         options[key] = (option == "true")
       else
         options[key] = option
+        
+    if scope.onCountrySelect
+        options['onCountrySelected'] = scope.onCountrySelect
 
     # Wait for ngModel to be set
     watchOnce = scope.$watch('ngModel', (newValue) ->
