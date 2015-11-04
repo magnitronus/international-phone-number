@@ -12,7 +12,8 @@
     numberType: "MOBILE",
     onlyCountries: void 0,
     preferredCountries: ['us', 'gb'],
-    utilsScript: ""
+    utilsScript: "",
+    autoAddDialCode: true
   }).directive('internationalPhoneNumber', [
     '$timeout', 'ipnConfig', function($timeout, ipnConfig) {
       return {
@@ -59,9 +60,6 @@
               return options[key] = option;
             }
           });
-          if (scope.onCountrySelect) {
-            options['onCountrySelected'] = scope.onCountrySelect;
-          }
           watchOnce = scope.$watch('ngModel', function(newValue) {
             return scope.$$postDigest(function() {
               if (newValue !== null && newValue !== void 0 && newValue.length > 0) {
@@ -71,6 +69,32 @@
                 element.val(newValue);
               }
               element.intlTelInput(options);
+              scope.select_handler = function(object) {
+                var value;
+                value = element.val();
+                scope.onCountrySelect({
+                  'selected_country': object
+                });
+                if (scope.dialCode === object.dialCode) {
+                  return;
+                }
+                if (!value) {
+                  element.val('+' + object.dialCode);
+                } else if (scope.dialCode) {
+                  if (value.slice(0, 1) === '+' && value.slice(1, scope.dialCode.length + 1) === scope.dialCode) {
+                    element.val('+' + object.dialCode + value.slice(scope.dialCode.length + 1, value.length));
+                  } else if (value.slice(0, scope.dialCode.length) === scope.dialCode) {
+                    element.val('+' + object.dialCode + value.slice(scope.dialCode.length, value.length - 1));
+                  }
+                } else if (value.slice(0, object.dialCode.length) !== object.dialCode || value.slice(0, object.dialCode.length + 1) !== '+' + object.dialCode) {
+                  element.val('+' + object.dialCode + value);
+                }
+                scope.dialCode = object.dialCode;
+              };
+              scope.select_handler(element.intlTelInput('getSelectedCountryData'));
+              if (scope.onCountrySelect) {
+                element.intlTelInput('onCountrySelected', scope.select_handler);
+              }
               if (!(attrs.skipUtilScriptDownload !== void 0 || options.utilsScript)) {
                 element.intlTelInput('loadUtils', '/bower_components/intl-tel-input/lib/libphonenumber/build/utils.js');
               }
@@ -93,13 +117,15 @@
           ctrl.$validators.internationalPhoneNumber = function(value) {
             var selectedCountry;
             selectedCountry = element.intlTelInput('getSelectedCountryData');
-            if (!value || (selectedCountry && selectedCountry.dialCode === value)) {
+            if (!value || (selectedCountry && (selectedCountry.dialCode === value || selectedCountry.dialCode === '+' + value))) {
               return true;
             }
             return element.intlTelInput("isValidNumber");
           };
           element.on('blur keyup change', function(event) {
-            return scope.$apply(read);
+            if (ctrl.$viewValue !== element.val()) {
+              scope.$apply(read);
+            }
           });
           return element.on('$destroy', function() {
             element.intlTelInput('destroy');
