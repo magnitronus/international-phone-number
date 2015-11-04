@@ -17,6 +17,7 @@ angular.module("internationalPhoneNumber", [])
     onlyCountries:      undefined
     preferredCountries: ['us', 'gb']
     utilsScript:        ""
+    autoAddDialCode:    true
   }
 
 .directive 'internationalPhoneNumber', ['$timeout', 'ipnConfig', ($timeout, ipnConfig) ->
@@ -60,9 +61,6 @@ angular.module("internationalPhoneNumber", [])
       else
         options[key] = option
         
-    if scope.onCountrySelect
-        options['onCountrySelected'] = scope.onCountrySelect
-
     # Wait for ngModel to be set
     watchOnce = scope.$watch('ngModel', (newValue) ->
       # Wait to see if other scope variables were set at the same time
@@ -76,6 +74,31 @@ angular.module("internationalPhoneNumber", [])
           element.val newValue
 
         element.intlTelInput(options)
+        
+        scope.select_handler = (object) ->
+            value = element.val()
+            scope.onCountrySelect({'selected_country': object})
+            
+            if scope.dialCode == object.dialCode
+                return
+            
+            if !value
+                element.val '+'+object.dialCode
+            else if scope.dialCode
+                if value.slice(0, 1)=='+' && value.slice(1, scope.dialCode.length+1)==scope.dialCode
+                    element.val '+'+object.dialCode+value.slice(scope.dialCode.length+1, value.length)
+                else if value.slice(0, scope.dialCode.length)==scope.dialCode
+                    element.val '+'+object.dialCode+value.slice(scope.dialCode.length, value.length-1)
+            else if value.slice(0, object.dialCode.length)!=object.dialCode || value.slice(0, object.dialCode.length+1)!='+'+object.dialCode
+                element.val '+'+object.dialCode+value
+            
+            scope.dialCode = object.dialCode
+            return
+        
+        scope.select_handler element.intlTelInput('getSelectedCountryData')
+        
+        if scope.onCountrySelect
+            element.intlTelInput('onCountrySelected', scope.select_handler)
 
         unless attrs.skipUtilScriptDownload != undefined || options.utilsScript
           element.intlTelInput('loadUtils', '/bower_components/intl-tel-input/lib/libphonenumber/build/utils.js')
@@ -101,13 +124,15 @@ angular.module("internationalPhoneNumber", [])
     ctrl.$validators.internationalPhoneNumber = (value) ->
       selectedCountry = element.intlTelInput('getSelectedCountryData')
 
-      if !value || (selectedCountry && selectedCountry.dialCode == value)
+      if !value || (selectedCountry && (selectedCountry.dialCode == value || selectedCountry.dialCode == '+'+value))
         return true
 
       element.intlTelInput("isValidNumber")
 
     element.on 'blur keyup change', (event) ->
-      scope.$apply read
+      if ctrl.$viewValue!=element.val()
+          scope.$apply read
+          return
 
     element.on '$destroy', () ->
       element.intlTelInput('destroy');
