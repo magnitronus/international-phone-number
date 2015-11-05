@@ -34,12 +34,13 @@ angular.module("internationalPhoneNumber", [])
       if element.val() != ''
         $timeout () ->
           element.intlTelInput 'setNumber', element.val()
-          ctrl.$setViewValue element.val()
+          ctrl.$setViewValue element.intlTelInput("getNumber")
         , 0
 
 
     read = () ->
       ctrl.$setViewValue element.intlTelInput("getNumber")
+      return
 
     handleWhatsSupposedToBeAnArray = (value) ->
       if value instanceof Array
@@ -76,12 +77,9 @@ angular.module("internationalPhoneNumber", [])
         element.intlTelInput(options)
         
         scope.select_handler = (object) ->
-            value = element.val()
             scope.onCountrySelect({'selected_country': object})
-        
-        if scope.onCountrySelect
-            element.intlTelInput('onCountrySelected', scope.select_handler)
-
+            
+            
         unless attrs.skipUtilScriptDownload != undefined || options.utilsScript
           element.intlTelInput('loadUtils', '/bower_components/intl-tel-input/lib/libphonenumber/build/utils.js')
 
@@ -112,7 +110,7 @@ angular.module("internationalPhoneNumber", [])
       element.intlTelInput("isValidNumber")
 
     element.on 'blur keyup change', (event) ->
-      if ctrl.$viewValue!=element.val()
+      if ctrl.$viewValue!=element.intlTelInput("getNumber")
           scope.$apply read
           return
 

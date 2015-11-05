@@ -29,12 +29,12 @@
             if (element.val() !== '') {
               $timeout(function() {
                 element.intlTelInput('setNumber', element.val());
-                return ctrl.$setViewValue(element.val());
+                return ctrl.$setViewValue(element.intlTelInput("getNumber"));
               }, 0);
             }
           }
           read = function() {
-            return ctrl.$setViewValue(element.intlTelInput("getNumber"));
+            ctrl.$setViewValue(element.intlTelInput("getNumber"));
           };
           handleWhatsSupposedToBeAnArray = function(value) {
             if (value instanceof Array) {
@@ -70,15 +70,10 @@
               }
               element.intlTelInput(options);
               scope.select_handler = function(object) {
-                var value;
-                value = element.val();
                 return scope.onCountrySelect({
                   'selected_country': object
                 });
               };
-              if (scope.onCountrySelect) {
-                element.intlTelInput('onCountrySelected', scope.select_handler);
-              }
               if (!(attrs.skipUtilScriptDownload !== void 0 || options.utilsScript)) {
                 element.intlTelInput('loadUtils', '/bower_components/intl-tel-input/lib/libphonenumber/build/utils.js');
               }
@@ -107,7 +102,7 @@
             return element.intlTelInput("isValidNumber");
           };
           element.on('blur keyup change', function(event) {
-            if (ctrl.$viewValue !== element.val()) {
+            if (ctrl.$viewValue !== element.intlTelInput("getNumber")) {
               scope.$apply(read);
             }
           });
