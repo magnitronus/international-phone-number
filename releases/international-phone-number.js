@@ -34,7 +34,7 @@
             }
           }
           read = function() {
-            return ctrl.$setViewValue(element.val());
+            return ctrl.$setViewValue(element.intlTelInput("getNumber"));
           };
           handleWhatsSupposedToBeAnArray = function(value) {
             if (value instanceof Array) {
@@ -72,26 +72,10 @@
               scope.select_handler = function(object) {
                 var value;
                 value = element.val();
-                scope.onCountrySelect({
+                return scope.onCountrySelect({
                   'selected_country': object
                 });
-                if (scope.dialCode === object.dialCode) {
-                  return;
-                }
-                if (!value) {
-                  element.val('+' + object.dialCode);
-                } else if (scope.dialCode) {
-                  if (value.slice(0, 1) === '+' && value.slice(1, scope.dialCode.length + 1) === scope.dialCode) {
-                    element.val('+' + object.dialCode + value.slice(scope.dialCode.length + 1, value.length));
-                  } else if (value.slice(0, scope.dialCode.length) === scope.dialCode) {
-                    element.val('+' + object.dialCode + value.slice(scope.dialCode.length, value.length - 1));
-                  }
-                } else if (value.slice(0, object.dialCode.length) !== object.dialCode || value.slice(0, object.dialCode.length + 1) !== '+' + object.dialCode) {
-                  element.val('+' + object.dialCode + value);
-                }
-                scope.dialCode = object.dialCode;
               };
-              scope.select_handler(element.intlTelInput('getSelectedCountryData'));
               if (scope.onCountrySelect) {
                 element.intlTelInput('onCountrySelected', scope.select_handler);
               }
